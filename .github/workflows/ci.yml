@@ -19,18 +19,18 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v5
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
+      - name: Set up Node.js and pnpm
+        uses: pnpm/setup@v1
         with:
-          node-version: 22
-          # pnpm is installed in the next step. Disabling automatic caching
-          # avoids setup-node attempting to resolve pnpm before it exists.
-          package-manager-cache: false
+          # pnpm/setup uses its standalone binary and avoids legacy Node 20
+          # action runtimes. pnpm 11 reads this repository's lockfile v9.
+          version: 11
+          runtime: node@22
+          cache: true
 
-      - name: Enable pinned pnpm
+      - name: Show tool versions
         run: |
-          corepack enable
-          corepack prepare pnpm@9.15.9 --activate
+          node --version
           pnpm --version
 
       - name: Install dependencies
