@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TechnicianStatus {
+  ACTIVE
+  UNAVAILABLE
+  CANCELLED
+}
+
+enum ServiceRequestStatus {
+  PENDING
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum AssignmentStatus {
+  PROPOSED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ScheduleVersionStatus {
+  PROPOSED
+  APPROVED
+  REJECTED
+}
+
+enum ScheduleTrigger {
+  INITIAL_PLAN
+  TECHNICIAN_CANCELLATION
+  TECHNICIAN_UNAVAILABILITY
+  EMERGENCY_REQUEST
+  REQUEST_CANCELLATION
+  DURATION_CHANGE
+  AVAILABILITY_CHANGE
+  MANUAL_OVERRIDE
+}
+
+enum AuditAction {
+  SCHEDULE_PROPOSED
+  SCHEDULE_APPROVED
+  SCHEDULE_REJECTED
+  ASSIGNMENT_OVERRIDDEN
+  REPLAN_REQUESTED
+}
+
+enum NotificationType {
+  SCHEDULE_APPROVED
+  ASSIGNMENT_CHANGED
+  ASSIGNMENT_REMOVED
+}
+
+enum DeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED
+}
+
+enum UserRole {
+  ADMIN
+  DISPATCHER
+  VIEWER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  displayName  String
+  passwordHash String
+  role         UserRole @default(DISPATCHER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Technician {
+  id                     String                   @id @default(cuid())
+  name                   String
+  skills                 String[]
+  assignedRegions        String[]
+  maximumWorkloadMinutes Int
+  status                 TechnicianStatus        @default(ACTIVE)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  availabilityWindows    TechnicianAvailability[]
+  workingHours           TechnicianWorkingHours[]
+  assignments            AssignmentSnapshot[]
+  notifications          MockNotification[]
+
+  @@index([status])
+}
+
+model TechnicianWorkingHours {
+  id          String     @id @default(cuid())
+  technicianId String
+  weekday     Int
+  startMinute Int
+  endMinute   Int
+  technician  Technician @relation(fields: [technicianId], references: [id], onDelete: Restrict)
+
+  @@unique([technicianId, weekday])
+}
+
+model TechnicianAvailability {
+  id           String     @id @default(cuid())
+  technicianId String
+  startsAt     DateTime
+  endsAt       DateTime
+  technician   Technician @relation(fields: [technicianId], references: [id], onDelete: Restrict)
+
+  @@index([technicianId, startsAt, endsAt])
+}
+
+model ServiceRequest {
+  id                   String               @id @default(cuid())
+  title                String
+  region               String
+  requiredSkill        String
+  priority             Int
+  estimatedDurationMin Int
+  preferredWindowStart DateTime?
+  preferredWindowEnd   DateTime?
+  notes                String?
+  status               ServiceRequestStatus @default(PENDING)
+  isEmergency          Boolean              @default(false)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  assignments          AssignmentSnapshot[]
+
+  @@index([status, priority])
+}
+
+model ScheduleVersion {
+  id                   String                @id @default(cuid())
+  planningDate         DateTime              @db.Date
+  operationalTimezone  String
+  versionNumber        Int
+  parentVersionId      String?
+  trigger              ScheduleTrigger
+  triggerReason        String?
+  status               ScheduleVersionStatus @default(PROPOSED)
+  unassignedRequests   Json
+  validationResult     Json
+  objectiveScore       Json
+  optimizationMetadata Json
+  changes              Json?
+  generatedAt          DateTime              @default(now())
+  approvedBy           String?
+  approvedAt           DateTime?
+  parentVersion        ScheduleVersion?      @relation("VersionLineage", fields: [parentVersionId], references: [id], onDelete: Restrict)
+  childVersions        ScheduleVersion[]     @relation("VersionLineage")
+  assignments          AssignmentSnapshot[]
+  audits               AuditEvent[]
+  notifications        MockNotification[]
+
+  @@unique([planningDate, versionNumber])
+  @@index([planningDate, status])
+}
+
+model AssignmentSnapshot {
+  id                String             @id @default(cuid())
+  scheduleVersionId String
+  technicianId      String
+  serviceRequestId  String
+  startsAt          DateTime
+  endsAt            DateTime
+  status            AssignmentStatus   @default(PROPOSED)
+  isManuallyEdited  Boolean            @default(false)
+  scheduleVersion   ScheduleVersion    @relation(fields: [scheduleVersionId], references: [id], onDelete: Restrict)
+  technician        Technician         @relation(fields: [technicianId], references: [id], onDelete: Restrict)
+  serviceRequest    ServiceRequest     @relation(fields: [serviceRequestId], references: [id], onDelete: Restrict)
+
+  @@unique([scheduleVersionId, serviceRequestId])
+  @@index([scheduleVersionId, technicianId, startsAt, endsAt])
+}
+
+model AuditEvent {
+  id                String          @id @default(cuid())
+  scheduleVersionId String
+  action            AuditAction
+  dispatcherId      String?
+  previousValue     Json?
+  newValue          Json?
+  reason            String?
+  createdAt         DateTime        @default(now())
+  scheduleVersion   ScheduleVersion @relation(fields: [scheduleVersionId], references: [id], onDelete: Restrict)
+
+  @@index([scheduleVersionId, createdAt])
+}
+
+model MockNotification {
+  id                String          @id @default(cuid())
+  technicianId      String
+  scheduleVersionId String
+  type              NotificationType
+  message           String
+  deliveryStatus    DeliveryStatus  @default(PENDING)
+  createdAt         DateTime        @default(now())
+  technician        Technician      @relation(fields: [technicianId], references: [id], onDelete: Restrict)
+  scheduleVersion   ScheduleVersion @relation(fields: [scheduleVersionId], references: [id], onDelete: Restrict)
+
+  @@index([scheduleVersionId, technicianId])
+}

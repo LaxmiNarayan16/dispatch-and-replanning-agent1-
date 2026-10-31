@@ -1,0 +1,40 @@
+name: Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fieldops?schema=public
+      AUTH_SECRET: ci-only-secret-that-is-at-least-thirty-two-characters-long
+      OPERATIONAL_TIMEZONE: Asia/Kolkata
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate types, schema, tests, and web build
+        run: |
+          pnpm check
+          pnpm check:serverless
+          pnpm prisma:validate
+          pnpm test
+          pnpm build:web

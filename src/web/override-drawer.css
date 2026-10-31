@@ -1,0 +1,13 @@
+/* The assignment drawer is intentionally narrow. Keep date/time controls in a
+   single column so neither field can escape past the drawer edge. */
+.detail-drawer .override-form .form-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.detail-drawer .override-form .form-row > label,
+.detail-drawer .override-form input,
+.detail-drawer .override-form select {
+  min-width: 0;
+  width: 100%;
+}

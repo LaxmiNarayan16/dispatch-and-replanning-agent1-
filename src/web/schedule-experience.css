@@ -1,0 +1,399 @@
+/* Technician Schedule only. Presentation changes never modify schedule data. */
+.timeline-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dce5f0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 6px 18px #10233f08;
+}
+
+.timeline-card .card-heading {
+  position: relative;
+  min-width: 0;
+  padding: 16px 20px 14px;
+  border: 0;
+  background: #fff;
+}
+
+.timeline-card .card-heading h2 {
+  color: #14213a;
+  font-size: 19px;
+  letter-spacing: -0.025em;
+}
+
+.timeline-card .card-heading p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.timeline-card .card-heading::after {
+  content: none;
+  display: none;
+}
+
+.timeline-card .live-chip {
+  align-self: flex-start;
+  margin-top: 1px;
+  padding: 5px 9px;
+  border: 1px solid #bfe7cf;
+  border-radius: 999px;
+  background: #e8f8ee;
+  color: #13743c;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+}
+
+.time-ruler {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(205px, 25%) minmax(0, 1fr);
+  min-width: 0;
+  border-top: 1px solid #dfe7f1;
+  border-bottom: 1px solid #dfe7f1;
+  background: #f4f7fc;
+}
+
+.time-ruler-label {
+  padding: 13px 18px;
+  border-right: 1px solid #dfe7f1;
+  color: #31445f;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.time-ruler-hours {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  min-width: 0;
+  height: 48px;
+  padding: 0;
+  background: #f4f7fc;
+}
+
+.time-ruler-hours span {
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  max-width: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 3px;
+  border-right: 1px solid #dfe7f1;
+  color: #31445f;
+  font-size: clamp(8px, 0.62vw, 10px);
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.time-ruler-hours span:first-child {
+  left: auto;
+  transform: none;
+}
+
+.time-ruler-hours span:last-child {
+  left: auto;
+  transform: none;
+  border-right: 0;
+  text-align: center;
+}
+
+.time-ruler-hours::after {
+  position: absolute;
+  z-index: 4;
+  top: 4px;
+  left: var(--schedule-now, 0%);
+  transform: translateX(-50%);
+  padding: 6px 9px;
+  border-radius: 7px;
+  background: #df514b;
+  box-shadow: 0 3px 9px #d93f3b2e;
+  color: #fff;
+  content: attr(data-now-label);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  opacity: var(--schedule-now-opacity, 0);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tech-schedule {
+  display: grid;
+  grid-template-columns: minmax(205px, 25%) minmax(0, 1fr);
+  min-width: 0;
+  min-height: 76px;
+  border-bottom: 1px solid #e2e9f2;
+  transition: background 0.15s ease;
+}
+
+.tech-schedule,
+.tech-schedule:hover,
+.tech-label { background: #fff; }
+
+.tech-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-right: 1px solid #dfe7f1;
+}
+
+.tech-label > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #eef5ff, #dbeaff);
+  box-shadow: inset 0 0 0 1px #cbddfa;
+  color: #1760d0;
+  font-size: 12px;
+}
+
+.tech-label b {
+  color: #17243a;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.tech-label small {
+  display: block;
+  margin-top: 3px;
+  color: #586b85;
+  font-size: 11px;
+}
+
+.tech-label small::after {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: #36a463;
+  content: "";
+  vertical-align: baseline;
+}
+
+.schedule-lane {
+  position: relative;
+  display: block;
+  min-width: 0;
+  min-height: 76px;
+  background: repeating-linear-gradient(90deg, #fff 0, #fff calc(10% - 1px), #dfe7f1 calc(10% - 1px), #dfe7f1 10%);
+}
+
+.schedule-lane::after {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  left: var(--schedule-now, 0%);
+  width: 2px;
+  border-left: 1px dashed #df514b;
+  background: #df514b1f;
+  content: "";
+  opacity: var(--schedule-now-opacity, 0);
+  pointer-events: none;
+}
+
+.availability-bar {
+  position: absolute;
+  z-index: 0;
+  top: 16px;
+  height: 44px;
+  overflow: hidden;
+  border: 1px solid #bee8cb;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #edfaf1, #d9f4e2);
+}
+
+.availability-bar .availability-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: 0 8px;
+  color: #14763d;
+  white-space: nowrap;
+}
+
+.availability-bar .availability-text b,
+.availability-bar .availability-text small {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.availability-bar .availability-text b {
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 13px;
+}
+
+.availability-bar .availability-text small {
+  margin: 0;
+  color: #2e7d4f;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 11px;
+}
+
+.schedule-lane .assignment-block {
+  position: absolute;
+  z-index: 2;
+  top: 15px;
+  height: 46px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 7px 10px;
+  border: 1px solid #72a6ff;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #f2f7ff, #dfedff);
+  box-shadow: 0 2px 6px #1d5eb517;
+  color: #153465;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.schedule-lane .assignment-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.schedule-lane .assignment-block:hover {
+  z-index: 4;
+  transform: translateY(-1px);
+  border-color: #3278eb;
+  box-shadow: 0 6px 14px #1d5eb52c;
+}
+
+.assignment-block b {
+  display: block;
+  overflow: hidden;
+  color: #173a71;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignment-block b::before,
+.schedule-lane .assignment-block::after { content: none !important; }
+
+.assignment-block small {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  color: #365b91;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignment-block.p4,
+.assignment-block.status-proposed {
+  border-color: #eab449;
+  background: linear-gradient(145deg, #fff8e9, #fff0cf);
+}
+
+.assignment-block.status-conflict {
+  border-color: #e66a75;
+  background: linear-gradient(145deg, #fff0f1, #ffe0e4);
+}
+
+/* The block itself always equals the persisted time interval. */
+.schedule-lane .assignment-block,
+.availability-bar { min-width: 0; max-width: 100%; }
+
+/* In a sub-hour or one-hour slot, use a compact in-slot label; details remain on click. */
+.schedule-lane .assignment-block.duration-30,
+.schedule-lane .assignment-block.duration-45,
+.schedule-lane .assignment-block.duration-60 {
+  display: grid;
+  padding: 0 4px;
+  place-items: center;
+  text-align: center;
+}
+
+.schedule-lane .assignment-block.duration-30 b,
+.schedule-lane .assignment-block.duration-30 small,
+.schedule-lane .assignment-block.duration-45 b,
+.schedule-lane .assignment-block.duration-45 small,
+.schedule-lane .assignment-block.duration-60 b,
+.schedule-lane .assignment-block.duration-60 small { display: none; }
+
+.schedule-lane .assignment-block.duration-30::before { content: "30m"; }
+.schedule-lane .assignment-block.duration-45::before { content: "45m"; }
+.schedule-lane .assignment-block.duration-60::before { content: "1h"; }
+
+.schedule-lane .assignment-block.duration-30::before,
+.schedule-lane .assignment-block.duration-45::before,
+.schedule-lane .assignment-block.duration-60::before {
+  color: #365b91;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.availability-bar.availability-30 .availability-text,
+.availability-bar.availability-45 .availability-text,
+.availability-bar.availability-60 .availability-text { font-size: 0; justify-content: center; padding: 0; }
+
+.availability-bar.availability-30 .availability-text::before { content: "30m"; }
+.availability-bar.availability-45 .availability-text::before { content: "45m"; }
+.availability-bar.availability-60 .availability-text::before { content: "1h"; }
+
+.availability-bar.availability-30 .availability-text::before,
+.availability-bar.availability-45 .availability-text::before,
+.availability-bar.availability-60 .availability-text::before {
+  color: #14763d;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+/* Keep plain white schedule rows; only the hourly dividers remain visible. */
+.schedule-lane {
+  background-image: repeating-linear-gradient(90deg, #fff 0, #fff calc(10% - 1px), #dfe7f1 calc(10% - 1px), #dfe7f1 10%) !important;
+}
+
+@media (max-width: 1100px) {
+  .console-main { padding: 24px; }
+}
+
+@media (max-width: 700px) {
+  .console-main { padding: 16px; }
+  .timeline-card .card-heading { padding-left: 18px; }
+  .time-ruler,
+  .tech-schedule { grid-template-columns: 180px minmax(720px, 1fr); }
+  .time-ruler-label,
+  .tech-label { padding-left: 12px; padding-right: 12px; }
+  .time-ruler-hours { padding: 0 6px; }
+  .time-ruler-hours span { font-size: 9px; }
+}

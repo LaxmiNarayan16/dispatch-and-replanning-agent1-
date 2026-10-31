@@ -1,0 +1,108 @@
+openapi: 3.0.3
+info:
+  title: FieldOps Dispatch API
+  version: 0.1.0
+  description: Deterministic single-day dispatch planning and immutable schedule-version workflow.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Process and database readiness
+      security: []
+      responses:
+        '200': { description: API and database ready }
+        '503': { description: API running but database persistence unavailable }
+  /schedules/preview:
+    post:
+      summary: Deterministically calculate an unpersisted proposed schedule
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SchedulePreviewInput' }
+      responses:
+        '200': { description: Valid planning result }
+        '400': { $ref: '#/components/responses/ValidationError' }
+  /schedule-versions:
+    post:
+      summary: Persist a new immutable proposed schedule version
+      responses:
+        '201': { description: Proposal created }
+        '409': { description: Parent version stale }
+        '422': { description: Version violates integrity requirements }
+        '503': { description: Persistence unavailable }
+  /schedule-versions/{versionId}/approve:
+    post:
+      summary: Approve a current proposed version transactionally
+      parameters:
+        - $ref: '#/components/parameters/VersionId'
+      responses:
+        '200': { description: Version approved and mock notifications created }
+        '409': { description: Version is stale or approval conflicted }
+        '422': { description: Version cannot be approved }
+  /schedule-versions/{versionId}/reject:
+    post:
+      summary: Reject a proposed version with a mandatory reason
+      parameters:
+        - $ref: '#/components/parameters/VersionId'
+      responses:
+        '204': { description: Version rejected }
+  /schedules/generate:
+    post:
+      summary: Generate and persist a new proposed schedule version
+      responses:
+        '201': { description: Proposal created; approval still required }
+        '409': { description: Parent version stale }
+        '503': { description: Persistence unavailable }
+  /schedule-overrides:
+    post:
+      summary: Validate one dispatcher edit and persist it as a child proposal
+      responses:
+        '201': { description: Override proposal created with audit row }
+        '422': { description: Hard constraint failed }
+        '503': { description: Persistence unavailable }
+  /ai/plan:
+    post:
+      summary: Return an advisory, hard-constraint-validated assignment plan
+      responses:
+        '200': { description: Advisory plan; persisted is false and requiresApproval is true }
+        '401': { description: Missing or invalid session }
+        '503': { description: Persistence unavailable }
+  /ai/plan/propose:
+    post:
+      summary: Persist the validated agent plan as a PROPOSED version
+      responses:
+        '201': { description: Proposal created; approval still required }
+        '422': { description: Validated plan could not form a version }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    VersionId:
+      in: path
+      name: versionId
+      required: true
+      schema: { type: string }
+  responses:
+    ValidationError:
+      description: Request failed API validation
+  schemas:
+    SchedulePreviewInput:
+      type: object
+      required: [context, technicians, requests]
+      properties:
+        context:
+          type: object
+          required: [planningDate, operationalTimezone]
+          properties:
+            planningDate: { type: string, format: date }
+            operationalTimezone: { type: string, example: Asia/Kolkata }
+        technicians: { type: array, items: { type: object } }
+        requests: { type: array, items: { type: object } }

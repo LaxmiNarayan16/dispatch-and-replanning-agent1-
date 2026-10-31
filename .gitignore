@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.vercel/
+.api-local.*.log
+.vite-local.*.log
+.tmp-*.mjs
+.pnpm-debug.log*
+.env
+.env.*
+!.env.example
+generated/

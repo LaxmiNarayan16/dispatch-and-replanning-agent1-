@@ -1,0 +1,2 @@
+/* The time ruler has a label column plus ten hourly cells. */
+.time-ruler { grid-template-columns: 175px repeat(10, minmax(45px, 1fr)); }
