@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import express, { type NextFunction, type Request, type Response } from "express";
+import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { type Assignment, type ServiceRequest, type Technician } from "../domain/index.js";
@@ -186,7 +186,7 @@ function errorHandler(error: unknown, request: Request, response: Response, _nex
   });
 }
 
-export function createApp(dependencies: AppDependencies = {}) {
+export function createApp(dependencies: AppDependencies = {}): Express {
   const app = express();
   app.disable("x-powered-by");
   app.use((request, response, next) => {
