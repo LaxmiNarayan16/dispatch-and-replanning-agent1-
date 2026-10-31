@@ -1,3 +1,4 @@
+
 name: Verify
 
 on:
@@ -15,18 +16,18 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fieldops?schema=public
       AUTH_SECRET: ci-only-secret-that-is-at-least-thirty-two-characters-long
       OPERATIONAL_TIMEZONE: Asia/Kolkata
+
     steps:
       - name: Check out source
         uses: actions/checkout@v5
 
-      - name: Set up Node.js and pnpm
-        uses: pnpm/setup@v1
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v3
         with:
-          # pnpm/setup uses its standalone binary and avoids legacy Node 20
-          # action runtimes. pnpm 11 reads this repository's lockfile v9.
           version: 11
           runtime: node@22
           cache: true
+          install: false
 
       - name: Show tool versions
         run: |
