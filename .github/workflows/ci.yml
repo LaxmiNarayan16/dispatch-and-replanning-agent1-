@@ -17,16 +17,21 @@ jobs:
       OPERATIONAL_TIMEZONE: Asia/Kolkata
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: pnpm
+          # pnpm is installed in the next step. Disabling automatic caching
+          # avoids setup-node attempting to resolve pnpm before it exists.
+          package-manager-cache: false
 
-      - name: Enable pnpm
-        run: corepack enable
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.9 --activate
+          pnpm --version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
